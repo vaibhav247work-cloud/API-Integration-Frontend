@@ -1,11 +1,14 @@
 import { HardDrive, Cloud, Network, Server, ArrowUpCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import AuthStep from './AuthStep';
 
 const STORAGE_TYPES = [
   { id: 'LOCAL', label: 'Local File System', icon: HardDrive, desc: 'Saves file directly to the server.' },
   { id: 'S3', label: 'Amazon S3', icon: Cloud, desc: 'Uploads the CSV to an S3 bucket.' },
   { id: 'FTP', label: 'FTP', icon: Server, desc: 'Transfers the file to an FTP server.' },
+  { id: 'FTPS', label: 'FTPS (Implicit TLS)', icon: Server, desc: 'Transfers the file using implicit TLS/SSL encryption.' },
   { id: 'SFTP', label: 'SFTP', icon: Server, desc: 'Transfers the file over SSH.' },
+  { id: 'TENANT_DEFAULT', label: 'Default Tenant Upload', icon: Network, desc: 'Uses the configured tenant upload endpoint.' },
   { id: 'HTTP_API', label: 'HTTP API Upload', icon: Network, desc: 'POSTs the file to an external API endpoint.' },
 ];
 
@@ -98,7 +101,7 @@ export default function StorageStep({ data, onChange }) {
            </div>
          )}
 
-         {(safeData.type === 'FTP' || safeData.type === 'SFTP') && (
+         {(safeData.type === 'FTP' || safeData.type === 'FTPS' || safeData.type === 'SFTP') && (
            <div className="space-y-6">
              <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">{safeData.type} Configuration</h3>
              
@@ -135,6 +138,17 @@ export default function StorageStep({ data, onChange }) {
                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Use Passive Mode</span>
                  </label>
                </div>
+             </div>
+           </div>
+         )}
+
+         {safeData.type === 'TENANT_DEFAULT' && (
+           <div className="max-w-xl space-y-4">
+             <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">Default Tenant Upload</h3>
+             <div>
+               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Tenant ID <span className="text-red-500">*</span></label>
+               <input type="text" placeholder="_2012119111101" value={safeConfig.tenantId || ''} onChange={e => handleConfigChange('tenantId', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-sm font-mono shadow-sm" />
+               <p className="text-xs text-zinc-500 mt-1">The backend must find this tenant in INTEGRATION_HTTP_API_TENANTS_JSON.</p>
              </div>
            </div>
          )}
@@ -186,6 +200,15 @@ export default function StorageStep({ data, onChange }) {
                     className="w-full px-3 py-2 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-xs font-mono shadow-sm"
                   />
                 </div>
+             </div>
+
+             <div className="border-t border-zinc-100 dark:border-white/5 pt-6">
+               <h4 className="font-semibold text-zinc-900 dark:text-white mb-4">Upload Authentication</h4>
+               <p className="text-xs text-zinc-500 mb-4">Authentication used only for this file-upload endpoint. It can differ from the source API authentication.</p>
+               <AuthStep
+                 data={safeConfig.uploadAuthConfig || { type: 'NONE', config: {} }}
+                 onChange={value => handleConfigChange('uploadAuthConfig', value)}
+               />
              </div>
            </div>
          )}

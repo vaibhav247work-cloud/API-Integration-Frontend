@@ -1,4 +1,6 @@
-# React + Vite
+# Integration Engine Frontend
+
+Project documentation: [frontend wiki](wiki/README.md). The sections below are the original Vite starter notes.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

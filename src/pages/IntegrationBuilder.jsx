@@ -253,6 +253,10 @@ export default function IntegrationBuilder() {
     const storageConfig = nestedStorageConfig && typeof nestedStorageConfig === 'object'
       ? { ...flatStorageConfig, ...nestedStorageConfig }
       : flatStorageConfig;
+    if (storageConfig.uploadAuthConfig?.config && typeof storageConfig.uploadAuthConfig.config === 'object') {
+      const { config, ...uploadAuth } = storageConfig.uploadAuthConfig;
+      storageConfig.uploadAuthConfig = { ...uploadAuth, ...config };
+    }
 
     return {
       clientName: st.basics.clientName,

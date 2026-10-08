@@ -91,6 +91,8 @@ export default function StepsBuilder({ data, onChange }) {
       requestWindowMode: 'NONE',
       requestDateVariable: '',
       requestDateFormat: '',
+      windowStartDateFormat: '',
+      windowEndDateFormat: '',
       paginate: false,
       dataStep: true,
       responseAlias: '',
@@ -264,7 +266,7 @@ export default function StepsBuilder({ data, onChange }) {
                              <select value={step.requestWindowMode} onChange={e => updateStep(idx, 'requestWindowMode', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-sm">
                                {WINDOW_MODES.map(m => <option key={m} value={m}>{m}</option>)}
                              </select>
-                             <p className="text-xs text-zinc-500 mt-1">If SINGLE_DATE, step repeats for every day in schedule window.</p>
+                             <p className="text-xs text-zinc-500 mt-1">SINGLE_DATE repeats once per day; DATE_RANGE sends one request for the full window.</p>
                            </div>
                            
                            {step.requestWindowMode === 'SINGLE_DATE' && (
@@ -277,6 +279,20 @@ export default function StepsBuilder({ data, onChange }) {
                                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date Format Override</label>
                                  <input type="text" value={step.requestDateFormat} onChange={e => updateStep(idx, 'requestDateFormat', e.target.value)} placeholder="yyyy-MM-dd" className="w-full px-3 py-1.5 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-xs font-mono" />
                                </div>
+                             </div>
+                           )}
+
+                           {step.requestWindowMode === 'DATE_RANGE' && (
+                             <div className="grid grid-cols-2 gap-4 pt-2">
+                               <div>
+                                 <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Start Date Format</label>
+                                 <input type="text" value={step.windowStartDateFormat || ''} onChange={e => updateStep(idx, 'windowStartDateFormat', e.target.value)} placeholder="yyyy-MM-dd" className="w-full px-3 py-1.5 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-xs font-mono" />
+                               </div>
+                               <div>
+                                 <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">End Date Format</label>
+                                 <input type="text" value={step.windowEndDateFormat || ''} onChange={e => updateStep(idx, 'windowEndDateFormat', e.target.value)} placeholder="yyyy-MM-dd" className="w-full px-3 py-1.5 bg-white dark:bg-[#14111c] border border-zinc-200 dark:border-white/10 rounded-lg text-xs font-mono" />
+                               </div>
+                               <p className="col-span-2 text-xs text-zinc-500">These formats apply to ${'{windowStartDate}'} and ${'{windowEndDateExclusive}'} in query parameters, headers, URLs, and body templates.</p>
                              </div>
                            )}
                          </div>

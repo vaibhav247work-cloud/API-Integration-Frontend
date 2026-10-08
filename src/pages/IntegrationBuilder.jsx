@@ -28,6 +28,34 @@ const TABS = [
   { id: 'mappings', label: 'Field Mappings', icon: LinkIcon },
 ];
 
+const normalizeAuthState = (rawAuth) => {
+  if (!rawAuth || typeof rawAuth !== 'object') {
+    return { type: 'NONE', config: {} };
+  }
+
+  const { type = 'NONE', config, ...flatConfig } = rawAuth;
+  return {
+    type,
+    config: config && typeof config === 'object'
+      ? { ...flatConfig, ...config }
+      : flatConfig,
+  };
+};
+
+const normalizeStorageState = (rawStorage) => {
+  if (!rawStorage || typeof rawStorage !== 'object') {
+    return { type: 'LOCAL', config: {} };
+  }
+
+  const { type = 'LOCAL', config, ...flatConfig } = rawStorage;
+  return {
+    type,
+    config: config && typeof config === 'object'
+      ? { ...flatConfig, ...config }
+      : flatConfig,
+  };
+};
+
 export default function IntegrationBuilder() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -143,11 +171,11 @@ export default function IntegrationBuilder() {
       
       const parsedSchedule = typeof data.scheduleConfig === 'string' ? JSON.parse(data.scheduleConfig) : (data.scheduleConfig || []);
       const rawAuth = typeof data.authConfig === 'string' ? JSON.parse(data.authConfig) : (data.authConfig || {});
-      const parsedAuth = { type: rawAuth.type || 'NONE', config: rawAuth.config || (() => { const { type, ...rest } = rawAuth; return Object.keys(rest).length > 0 ? rest : {}; })() };
+      const parsedAuth = normalizeAuthState(rawAuth);
       const parsedResponse = typeof data.responseConfig === 'string' ? JSON.parse(data.responseConfig) : (data.responseConfig || {});
       const parsedPagination = typeof data.paginationConfig === 'string' ? JSON.parse(data.paginationConfig) : (data.paginationConfig || {});
       const rawStorage = typeof data.storageConfig === 'string' ? JSON.parse(data.storageConfig) : (data.storageConfig || {});
-      const parsedStorage = { type: rawStorage.type || 'LOCAL', config: rawStorage.config || {} };
+      const parsedStorage = normalizeStorageState(rawStorage);
       const parsedSteps = typeof data.stepConfig === 'string' ? JSON.parse(data.stepConfig) : (data.stepConfig || []);
 
       setBuilderState({
@@ -215,6 +243,17 @@ export default function IntegrationBuilder() {
   const generatePayload = () => {
     // Basic mapping for preview and submission
     const st = builderState;
+    const authState = st.auth || { type: 'NONE', config: {} };
+    const { config: nestedAuthConfig, ...flatAuthConfig } = authState;
+    const authConfig = nestedAuthConfig && typeof nestedAuthConfig === 'object'
+      ? { ...flatAuthConfig, ...nestedAuthConfig }
+      : flatAuthConfig;
+    const storageState = st.storage || { type: 'LOCAL', config: {} };
+    const { config: nestedStorageConfig, ...flatStorageConfig } = storageState;
+    const storageConfig = nestedStorageConfig && typeof nestedStorageConfig === 'object'
+      ? { ...flatStorageConfig, ...nestedStorageConfig }
+      : flatStorageConfig;
+
     return {
       clientName: st.basics.clientName,
       brandCode: st.basics.brandCode,
@@ -226,12 +265,13 @@ export default function IntegrationBuilder() {
       csvFileName: st.basics.csvFileName,
       outputDirectory: st.basics.outputDirectory,
       maxRetries: Number(st.basics.maxRetries ?? 0),
-      authConfig: st.auth,
-      responseConfig: st.response,
-      paginationConfig: st.pagination,
-      storageConfig: st.storage,
-      stepConfig: st.steps,
-      fieldMappings: st.mappings,
+      // The backend expects auth fields next to `type`, not under `config`.
+        authConfig,
+        responseConfig: st.response,
+        paginationConfig: st.pagination,
+      storageConfig,
+        stepConfig: st.steps,
+        fieldMappings: st.mappings,
     };
   };
 
@@ -259,10 +299,12 @@ export default function IntegrationBuilder() {
     try {
       const data = JSON.parse(rawJsonString);
       const parsedSchedule = Array.isArray(data.scheduleConfig) ? data.scheduleConfig : (typeof data.scheduleConfig === 'string' ? JSON.parse(data.scheduleConfig) : []);
-      const parsedAuth = data.authConfig && typeof data.authConfig === 'object' ? data.authConfig : (typeof data.authConfig === 'string' ? JSON.parse(data.authConfig) : { type: 'NONE', config: {} });
+      const rawAuth = data.authConfig && typeof data.authConfig === 'object' ? data.authConfig : (typeof data.authConfig === 'string' ? JSON.parse(data.authConfig) : { type: 'NONE' });
+      const parsedAuth = normalizeAuthState(rawAuth);
       const parsedResponse = data.responseConfig && typeof data.responseConfig === 'object' ? data.responseConfig : (typeof data.responseConfig === 'string' ? JSON.parse(data.responseConfig) : {});
       const parsedPagination = data.paginationConfig && typeof data.paginationConfig === 'object' ? data.paginationConfig : (typeof data.paginationConfig === 'string' ? JSON.parse(data.paginationConfig) : {});
-      const parsedStorage = data.storageConfig && typeof data.storageConfig === 'object' ? data.storageConfig : (typeof data.storageConfig === 'string' ? JSON.parse(data.storageConfig) : { type: 'LOCAL', config: {} });
+      const rawStorage = data.storageConfig && typeof data.storageConfig === 'object' ? data.storageConfig : (typeof data.storageConfig === 'string' ? JSON.parse(data.storageConfig) : { type: 'LOCAL' });
+      const parsedStorage = normalizeStorageState(rawStorage);
       const parsedSteps = Array.isArray(data.stepConfig) ? data.stepConfig : (typeof data.stepConfig === 'string' ? JSON.parse(data.stepConfig) : []);
 
       setBuilderState({

@@ -4,7 +4,8 @@ import { cn } from '../../lib/utils';
 const STORAGE_TYPES = [
   { id: 'LOCAL', label: 'Local File System', icon: HardDrive, desc: 'Saves file directly to the server.' },
   { id: 'S3', label: 'Amazon S3', icon: Cloud, desc: 'Uploads the CSV to an S3 bucket.' },
-  { id: 'FTP', label: 'SFTP / FTP', icon: Server, desc: 'Transfers the file to a remote server.' },
+  { id: 'FTP', label: 'FTP', icon: Server, desc: 'Transfers the file to an FTP server.' },
+  { id: 'SFTP', label: 'SFTP', icon: Server, desc: 'Transfers the file over SSH.' },
   { id: 'HTTP_API', label: 'HTTP API Upload', icon: Network, desc: 'POSTs the file to an external API endpoint.' },
 ];
 
@@ -97,9 +98,9 @@ export default function StorageStep({ data, onChange }) {
            </div>
          )}
 
-         {safeData.type === 'FTP' && (
+         {(safeData.type === 'FTP' || safeData.type === 'SFTP') && (
            <div className="space-y-6">
-             <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">FTP / SFTP Configuration</h3>
+             <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">{safeData.type} Configuration</h3>
              
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                <div className="md:col-span-2">
